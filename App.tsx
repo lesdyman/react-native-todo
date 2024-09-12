@@ -1,118 +1,76 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
-import React from 'react';
-import type {PropsWithChildren} from 'react';
+import React, { useState } from 'react';
 import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
+  FlatList,
   Text,
-  useColorScheme,
+  TextInput,
+  TouchableOpacity,
   View,
 } from 'react-native';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+import { styles } from './styles';
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
-
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
 
 function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+  const initial_todos = [
+    { key: '1', text: 'Buy it', color: '#780000'},
+    { key: '2', text: 'Use it', color: '#FDF0D5'},
+    { key: '3', text: 'Trash it', color: '#003049'},
+    { key: '4', text: 'Fix it', color: '#669BBC'},
+  ];
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+  interface Todo {
+    key: string,
+    text: string,
+    color: string
+  }
+
+  const [todos, setTodos] = useState<Todo[]>(initial_todos);
+  const [inputValue, setInputValue] = useState<string>('');
+
+  const getRandomColor = () => {
+    const letters = '0123456789ABCDEF';
+    let color = '#';
+    for (let i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+  };
+
+  const handleAddTodo = () => {
+    if (inputValue.trim()) {
+      setTodos([...todos, { key: String(todos.length + 1), text: inputValue, color: getRandomColor() }]);
+      setInputValue('');
+    }
   };
 
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
+    <View style={styles.container}>
+      <Text style={styles.text}>Todos</Text>
+
+      <View style={styles.top_container}>
+        <TextInput
+          placeholder="Write something here"
+          style={styles.input}
+          value={inputValue}
+          onChangeText={setInputValue}
+        />
+        <TouchableOpacity style={styles.addButton} onPress={handleAddTodo}>
+          <Text style={styles.addButtonText}>Add</Text>
+        </TouchableOpacity>
+      </View>
+
+      <FlatList
+        contentContainerStyle={styles.todoList}
+        data={todos}
+        renderItem={({ item }) => (
+          <View style={[styles.todoItem, { backgroundColor: item.color}]}>
+            <Text style={styles.todoText}>{item.text}</Text>
+          </View>
+        )}
+        keyExtractor={item => item.key}
       />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
 
 export default App;
