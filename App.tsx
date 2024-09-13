@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  FlatList,
   Text,
   TextInput,
   TouchableOpacity,
@@ -8,6 +7,7 @@ import {
 } from 'react-native';
 
 import { styles } from './styles';
+import { SwipeListView } from 'react-native-swipe-list-view';
 
 
 function App(): React.JSX.Element {
@@ -43,6 +43,10 @@ function App(): React.JSX.Element {
     }
   };
 
+  const handleDeleteTodo = (itemId: string) => {
+    setTodos(todos.filter(todo => todo.key !== itemId));
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.text}>Todos</Text>
@@ -59,12 +63,22 @@ function App(): React.JSX.Element {
         </TouchableOpacity>
       </View>
 
-      <FlatList
+      <SwipeListView
+       disableRightSwipe={true}
         contentContainerStyle={styles.todoList}
+        rightOpenValue={-90}
+        stopRightSwipe={-90}
         data={todos}
         renderItem={({ item }) => (
           <View style={[styles.todoItem, { backgroundColor: item.color}]}>
             <Text style={styles.todoText}>{item.text}</Text>
+          </View>
+        )}
+        renderHiddenItem={(data) => (
+          <View>
+            <TouchableOpacity style={styles.deleteButton} onPress={() => handleDeleteTodo(data.item.key)}>
+              <Text style={styles.deleteButtonText}>Delete</Text>
+            </TouchableOpacity>
           </View>
         )}
         keyExtractor={item => item.key}

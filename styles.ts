@@ -46,6 +46,19 @@ export const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
   },
+  deleteButton: {
+    padding: 25,
+    borderRadius: 10,
+    borderColor: '#ddd',
+    borderWidth: 1,
+    marginBottom: 2,
+    backgroundColor: '#cc0000',
+  },
+  deleteButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    textAlign: 'right',
+  },
   todoList: {
     flexGrow: 1,
   },
