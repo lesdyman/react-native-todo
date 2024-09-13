@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, { useState, useRef } from 'react';
+import React, {useState, useEffect, useRef, useMemo} from 'react';
 import {
   Image,
   Pressable,
@@ -8,17 +8,11 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { styles } from './styles';
-import { SwipeListView } from 'react-native-swipe-list-view';
+import {styles} from './styles';
+import {SwipeListView} from 'react-native-swipe-list-view';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function App(): React.JSX.Element {
-  const initial_todos = [
-    { key: '1', text: 'Buy it', color: '#780000', done: false },
-    { key: '2', text: 'Use it', color: '#fdc500', done: false },
-    { key: '3', text: 'Trash it', color: '#003049', done: true },
-    { key: '4', text: 'Fix it', color: '#669BBC', done: false },
-  ];
-
   interface Todo {
     key: string;
     text: string;
@@ -26,15 +20,35 @@ function App(): React.JSX.Element {
     done: boolean;
   }
 
-  const [todos, setTodos] = useState<Todo[]>(initial_todos);
+  const [todos, setTodos] = useState<Todo[]>([]);
   const [inputValue, setInputValue] = useState<string>('');
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [editItemKey, setEditItemKey] = useState<string>('');
   const [editingValue, setEditingValue] = useState<string>('');
 
-  const rowRefs = useRef<{ [key: string]: any }>({});
+  const rowRefs = useRef<{[key: string]: any}>({});
 
-  const getRandomColor = () => {
+  useEffect(() => {
+    loadTodosFromStorage();
+  }, []);
+
+  function generateRandomKey() {
+    const digits = '0123456789';
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+    let result = '';
+
+    for (let i = 0; i < 3; i++) {
+      result += digits.charAt(Math.floor(Math.random() * digits.length));
+    }
+
+    for (let i = 0; i < 2; i++) {
+      result += letters.charAt(Math.floor(Math.random() * letters.length));
+    }
+
+    return result;
+  }
+
+  const generateRandomColor = () => {
     const letters = '0123456789ABCDEF';
     let color = '#';
     for (let i = 0; i < 6; i++) {
@@ -43,43 +57,63 @@ function App(): React.JSX.Element {
     return color;
   };
 
+  const saveTodosToStorage = async (newTodos: Todo[]) => {
+    try {
+      const jsonValue = JSON.stringify(newTodos);
+      await AsyncStorage.setItem('todos', jsonValue);
+    } catch (e) {
+      console.error('Error saving todos', e);
+    }
+  };
+
+  const loadTodosFromStorage = async () => {
+    try {
+      const jsonValue = await AsyncStorage.getItem('todos');
+      if (jsonValue != null) {
+        setTodos(JSON.parse(jsonValue));
+      } else {
+        setTodos([]);
+      }
+    } catch (e) {
+      console.error('Error loading todos', e);
+    }
+  };
+
   const handleAddTodo = () => {
     if (inputValue.trim()) {
+      let updatedTodos;
       if (isEditing && editItemKey) {
-        setTodos(
-          todos.map(todo =>
-            todo.key === editItemKey
-              ? { ...todo, text: inputValue }
-              : todo
-          )
+        updatedTodos = todos.map(todo =>
+          todo.key === editItemKey ? {...todo, text: inputValue} : todo,
         );
         setIsEditing(false);
         setEditItemKey('');
         setInputValue('');
       } else {
-        setTodos([
+        updatedTodos = [
           ...todos,
           {
-            key: String(todos.length + 1),
+            key: generateRandomKey(),
             text: inputValue,
-            color: getRandomColor(),
+            color: generateRandomColor(),
             done: false,
           },
-        ]);
+        ];
         setInputValue('');
       }
+
+      setTodos(updatedTodos);
+      saveTodosToStorage(updatedTodos);
     }
   };
 
   const handleUpdate = (itemId: string) => {
     if (editingValue.trim()) {
-      setTodos(
-        todos.map(todo =>
-          todo.key === itemId
-            ? { ...todo, text: editingValue }
-            : todo
-        )
+      const updatedTodos = todos.map(todo =>
+        todo.key === itemId ? {...todo, text: editingValue} : todo,
       );
+      setTodos(updatedTodos);
+      saveTodosToStorage(updatedTodos);
       setIsEditing(false);
       setEditItemKey('');
       setEditingValue('');
@@ -87,7 +121,9 @@ function App(): React.JSX.Element {
   };
 
   const handleDeleteTodo = (itemId: string) => {
-    setTodos(todos.filter(todo => todo.key !== itemId));
+    const updatedTodos = todos.filter(todo => todo.key !== itemId);
+    setTodos(updatedTodos);
+    saveTodosToStorage(updatedTodos);
   };
 
   const handleEditTodo = (itemId: string) => {
@@ -97,12 +133,21 @@ function App(): React.JSX.Element {
   };
 
   const toggleStatus = (itemId: string) => {
-    setTodos(
-      todos.map(item =>
-        item.key === itemId ? { ...item, done: !item.done } : item
-      )
+    const updatedTodos = todos.map(item =>
+      item.key === itemId ? {...item, done: !item.done} : item,
     );
+    setTodos(updatedTodos);
+    saveTodosToStorage(updatedTodos);
   };
+
+  const sortedTodos = useMemo(() => {
+    return todos.sort((a, b) => {
+      if (a.done === b.done) {
+        return 0;
+      }
+      return a.done ? 1 : -1;
+    });
+  }, [todos]);
 
   return (
     <View style={styles.container}>
@@ -116,9 +161,7 @@ function App(): React.JSX.Element {
           onChangeText={setInputValue}
         />
         <TouchableOpacity style={styles.addButton} onPress={handleAddTodo}>
-          <Text style={styles.addButtonText}>
-            Add
-          </Text>
+          <Text style={styles.addButtonText}>Add</Text>
         </TouchableOpacity>
       </View>
 
@@ -127,8 +170,8 @@ function App(): React.JSX.Element {
         contentContainerStyle={styles.todoList}
         rightOpenValue={-180}
         stopRightSwipe={-180}
-        data={todos}
-        renderItem={({ item }) => (
+        data={sortedTodos}
+        renderItem={({item}) => (
           <Pressable onPress={() => toggleStatus(item.key)}>
             {isEditing && editItemKey === item.key ? (
               <View style={styles.editView}>
@@ -141,8 +184,7 @@ function App(): React.JSX.Element {
                   style={styles.addButton}
                   onPress={() => {
                     handleUpdate(item.key);
-                  }}
-                >
+                  }}>
                   <Text style={styles.addButtonText}>Update</Text>
                 </TouchableOpacity>
               </View>
@@ -150,17 +192,15 @@ function App(): React.JSX.Element {
               <View
                 style={[
                   styles.todoItem,
-                  { backgroundColor: item.done ? '#adb5bd' : item.color },
-                ]}
-              >
+                  {backgroundColor: item.done ? '#adb5bd' : item.color},
+                ]}>
                 <Text
                   style={[
                     styles.todoText,
                     {
                       textDecorationLine: item.done ? 'line-through' : 'none',
                     },
-                  ]}
-                >
+                  ]}>
                   {item.text}
                 </Text>
                 {item.done && (
@@ -182,14 +222,12 @@ function App(): React.JSX.Element {
             <View style={styles.hiddenButtons}>
               <TouchableOpacity
                 style={styles.editButton}
-                onPress={() => handleEditTodo(data.item.key)}
-              >
+                onPress={() => handleEditTodo(data.item.key)}>
                 <Text style={styles.buttonText}>Edit</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.deleteButton}
-                onPress={() => handleDeleteTodo(data.item.key)}
-              >
+                onPress={() => handleDeleteTodo(data.item.key)}>
                 <Text style={styles.buttonText}>Delete</Text>
               </TouchableOpacity>
             </View>
