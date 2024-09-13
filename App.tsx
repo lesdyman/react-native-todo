@@ -1,25 +1,16 @@
-/* eslint-disable react-native/no-inline-styles */
 import React, {useState, useEffect, useRef, useMemo} from 'react';
-import {
-  Image,
-  Pressable,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import {Pressable, Text, View} from 'react-native';
 import {styles} from './styles';
 import {SwipeListView} from 'react-native-swipe-list-view';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-function App(): React.JSX.Element {
-  interface Todo {
-    key: string;
-    text: string;
-    color: string;
-    done: boolean;
-  }
+import {generateRandomColor, generateRandomKey} from './utils/utils';
+import {InputSection} from './components/InputSection';
+import {Todo} from './types/Todo';
+import {TodoItem} from './components/TodoItem';
+import {Button} from './components/Button';
 
+function App(): React.JSX.Element {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [inputValue, setInputValue] = useState<string>('');
   const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -31,31 +22,6 @@ function App(): React.JSX.Element {
   useEffect(() => {
     loadTodosFromStorage();
   }, []);
-
-  function generateRandomKey() {
-    const digits = '0123456789';
-    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-    let result = '';
-
-    for (let i = 0; i < 3; i++) {
-      result += digits.charAt(Math.floor(Math.random() * digits.length));
-    }
-
-    for (let i = 0; i < 2; i++) {
-      result += letters.charAt(Math.floor(Math.random() * letters.length));
-    }
-
-    return result;
-  }
-
-  const generateRandomColor = () => {
-    const letters = '0123456789ABCDEF';
-    let color = '#';
-    for (let i = 0; i < 6; i++) {
-      color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
-  };
 
   const saveTodosToStorage = async (newTodos: Todo[]) => {
     try {
@@ -154,15 +120,15 @@ function App(): React.JSX.Element {
       <Text style={styles.text}>Todos</Text>
 
       <View style={styles.top_container}>
-        <TextInput
-          placeholder="Write something here"
-          style={styles.input}
-          value={inputValue}
-          onChangeText={setInputValue}
+        <InputSection
+          inputValue={inputValue}
+          setInputValue={setInputValue}
+          onPress={handleAddTodo}
+          buttonText="Add"
+          inputStyle={styles.input}
+          buttonStyle={styles.addButton}
+          buttonTextStyle={styles.addButtonText}
         />
-        <TouchableOpacity style={styles.addButton} onPress={handleAddTodo}>
-          <Text style={styles.addButtonText}>Add</Text>
-        </TouchableOpacity>
       </View>
 
       <SwipeListView
@@ -175,41 +141,18 @@ function App(): React.JSX.Element {
           <Pressable onPress={() => toggleStatus(item.key)}>
             {isEditing && editItemKey === item.key ? (
               <View style={styles.editView}>
-                <TextInput
-                  value={editingValue}
-                  style={styles.editInput}
-                  onChangeText={setEditingValue}
+                <InputSection
+                  inputValue={editingValue}
+                  setInputValue={setEditingValue}
+                  onPress={() => handleUpdate(item.key)}
+                  buttonText="Update"
+                  inputStyle={styles.editInput}
+                  buttonStyle={styles.addButton}
+                  buttonTextStyle={styles.addButtonText}
                 />
-                <TouchableOpacity
-                  style={styles.addButton}
-                  onPress={() => {
-                    handleUpdate(item.key);
-                  }}>
-                  <Text style={styles.addButtonText}>Update</Text>
-                </TouchableOpacity>
               </View>
             ) : (
-              <View
-                style={[
-                  styles.todoItem,
-                  {backgroundColor: item.done ? '#adb5bd' : item.color},
-                ]}>
-                <Text
-                  style={[
-                    styles.todoText,
-                    {
-                      textDecorationLine: item.done ? 'line-through' : 'none',
-                    },
-                  ]}>
-                  {item.text}
-                </Text>
-                {item.done && (
-                  <Image
-                    source={require('./assets/check.png')}
-                    style={styles.checkIcon}
-                  />
-                )}
-              </View>
+              <TodoItem item={item} />
             )}
           </Pressable>
         )}
@@ -220,16 +163,19 @@ function App(): React.JSX.Element {
           rowRefs.current[data.item.key] = rowMap[data.item.key];
           return (
             <View style={styles.hiddenButtons}>
-              <TouchableOpacity
-                style={styles.editButton}
-                onPress={() => handleEditTodo(data.item.key)}>
-                <Text style={styles.buttonText}>Edit</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={() => handleDeleteTodo(data.item.key)}>
-                <Text style={styles.buttonText}>Delete</Text>
-              </TouchableOpacity>
+              <Button
+                buttonText="Edit"
+                buttonStyle={styles.editButton}
+                buttonTextStyle={styles.buttonText}
+                onPress={() => handleEditTodo(data.item.key)}
+              />
+
+              <Button
+                buttonText="Delete"
+                buttonStyle={styles.deleteButton}
+                buttonTextStyle={styles.buttonText}
+                onPress={() => handleDeleteTodo(data.item.key)}
+              />
             </View>
           );
         }}
