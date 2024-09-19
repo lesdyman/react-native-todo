@@ -64,7 +64,6 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-end',
     alignItems: 'center',
-    backgroundColor: '#ddd',
     margin: 1,
     marginHorizontal: 4,
     borderRadius: 5,
@@ -100,6 +99,7 @@ export const styles = StyleSheet.create({
     borderColor: '#ddd',
     borderWidth: 1,
     marginBottom: 2,
+    width: '92%',
   },
   todoText: {
     fontSize: 20,
@@ -109,5 +109,19 @@ export const styles = StyleSheet.create({
   checkIcon: {
     width: 20,
     height: 20,
+  },
+
+  todoContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    backgroundColor: '##FFFF00',
+    alignItems: 'center',
+    gap: 5,
+  },
+  radioButtonContainer: {
+    borderBlockColor: '#000',
+    height: 20,
+    width: 20,
+    borderRadius: 10,
   },
 });
