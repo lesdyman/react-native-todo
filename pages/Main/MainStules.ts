@@ -34,20 +34,6 @@ export const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 1,
   },
-  editView: {
-    flexDirection: 'row',
-  },
-  editInput: {
-    fontSize: 20,
-    height: 70,
-    width: '75%',
-    borderColor: '#ddd',
-    borderWidth: 1,
-    paddingHorizontal: 8,
-    marginRight: 5,
-    borderRadius: 5,
-    backgroundColor: '#fff',
-  },
   addButton: {
     height: 70,
     width: 80,
@@ -59,6 +45,11 @@ export const styles = StyleSheet.create({
   addButtonText: {
     color: '#fff',
     fontSize: 16,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    textAlign: 'right',
   },
   hiddenButtons: {
     flexDirection: 'row',
@@ -82,44 +73,21 @@ export const styles = StyleSheet.create({
     backgroundColor: '#48cae4',
     borderRadius: 5,
   },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    textAlign: 'right',
-  },
   todoList: {
     flexGrow: 1,
   },
-  todoItem: {
+  editView: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    padding: 25,
-    borderRadius: 10,
+  },
+  editInput: {
+    fontSize: 20,
+    height: 70,
+    width: '75%',
     borderColor: '#ddd',
     borderWidth: 1,
-    marginBottom: 2,
-    width: '92%',
-  },
-  todoText: {
-    fontSize: 20,
-    fontWeight: '500',
-    color: '#DFDFDF',
-  },
-  checkIcon: {
-    width: 20,
-    height: 20,
-  },
-  todoContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-  },
-  radioButtonContainer: {
-    borderBlockColor: '#000',
-    height: 20,
-    width: 20,
-    borderRadius: 10,
+    paddingHorizontal: 8,
+    marginRight: 5,
+    borderRadius: 5,
+    backgroundColor: '#fff',
   },
 });
