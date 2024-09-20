@@ -1,17 +1,30 @@
 import React, {useState, useEffect, useRef, useMemo} from 'react';
 import {Pressable, Text, View} from 'react-native';
-
 import {SwipeListView} from 'react-native-swipe-list-view';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {styles} from '../Main/MainStules';
+import {
+  generateRandomColor,
+  generateRandomKey,
+  loadDataFromStorage,
+} from '../../utils/utils';
+import {InputSection} from '../../components/InputSection';
+import {Todo} from '../../types/Todo';
+import {TodoItem} from '../../components/TodoItem';
+import {Button} from '../../components/Button';
+import {RootStackParamList} from '../../types/RootStackParamList';
+import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 
-import {styles} from '../styles';
-import {generateRandomColor, generateRandomKey} from '../utils/utils';
-import {InputSection} from '../components/InputSection';
-import {Todo} from '../types/Todo';
-import {TodoItem} from '../components/TodoItem';
-import {Button} from '../components/Button';
+type MainPageNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'Main'
+>;
 
-const Main = ({ navigation }) => {
+interface MainPageProps {
+  navigation: MainPageNavigationProp;
+}
+
+const Main: React.FC<MainPageProps> = ({navigation}) => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [inputValue, setInputValue] = useState<string>('');
   const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -34,15 +47,11 @@ const Main = ({ navigation }) => {
   };
 
   const loadTodosFromStorage = async () => {
-    try {
-      const jsonValue = await AsyncStorage.getItem('todos');
-      if (jsonValue != null) {
-        setTodos(JSON.parse(jsonValue));
-      } else {
-        setTodos([]);
-      }
-    } catch (e) {
-      console.error('Error loading todos', e);
+    const todosFromStorage = await loadDataFromStorage<Todo[]>('todos');
+    if (todosFromStorage) {
+      setTodos(todosFromStorage);
+    } else {
+      setTodos([]);
     }
   };
 
@@ -141,23 +150,29 @@ const Main = ({ navigation }) => {
         data={sortedTodos}
         renderItem={({item}) => (
           <View>
-          <Pressable onPress={() => navigation.navigate('Details', { title: item.text, status: item.done ? 'Done' : 'Not Done' })}>
-            {isEditing && editItemKey === item.key ? (
-              <View style={styles.editView}>
-                <InputSection
-                  inputValue={editingValue}
-                  setInputValue={setEditingValue}
-                  onPress={() => handleUpdate(item.key)}
-                  buttonText="Update"
-                  inputStyle={styles.editInput}
-                  buttonStyle={styles.addButton}
-                  buttonTextStyle={styles.addButtonText}
-                />
-              </View>
-            ) : (
-              <TodoItem item={item} toggleStatus={toggleStatus} />
-            )}
-          </Pressable>
+            <Pressable
+              onPress={() =>
+                navigation.navigate('DetailsPage', {
+                  title: item.text,
+                  status: item.done ? 'Done' : 'Not Done',
+                })
+              }>
+              {isEditing && editItemKey === item.key ? (
+                <View style={styles.editView}>
+                  <InputSection
+                    inputValue={editingValue}
+                    setInputValue={setEditingValue}
+                    onPress={() => handleUpdate(item.key)}
+                    buttonText="Update"
+                    inputStyle={styles.editInput}
+                    buttonStyle={styles.addButton}
+                    buttonTextStyle={styles.addButtonText}
+                  />
+                </View>
+              ) : (
+                <TodoItem item={item} toggleStatus={toggleStatus} />
+              )}
+            </Pressable>
           </View>
         )}
         renderHiddenItem={(data, rowMap) => {
