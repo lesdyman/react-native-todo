@@ -38,7 +38,7 @@ const TabsNavigator = () => {
   return (
     <Tabs.Navigator>
       <Tabs.Screen
-        name="Home"
+        name="Todo List"
         component={MainStack}
         options={{
           headerShown: false,
@@ -51,7 +51,6 @@ const TabsNavigator = () => {
         name="Info"
         component={Info}
         options={{
-          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <Ionicons
               name="information-circle-outline"
